@@ -1,33 +1,41 @@
-// server.js für Render.com Deployment
 const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 
-app.use(express.json());
+app.use(cors());
+app.use(bodyParser.json());
 
-let lastTrigger = {};
+let lastTrigger = null;
 
-// POST /trigger
+app.get('/', (req, res) => {
+  res.send('Wirklichkeits-API läuft. Endpunkte: POST /trigger, GET /status');
+});
+
 app.post('/trigger', (req, res) => {
-  const triggerData = req.body;
-  lastTrigger = triggerData;
-  console.log('✅ Neuer Trigger gesetzt:', triggerData);
+  lastTrigger = req.body;
+  console.log('🌀 Trigger gesetzt:', lastTrigger);
   res.send('Trigger empfangen und gesetzt!');
 });
 
-// GET /status
 app.get('/status', (req, res) => {
-  if (!lastTrigger || Object.keys(lastTrigger).length === 0) {
-    return res.status(404).send('Noch kein Trigger gesetzt.');
+  if (!lastTrigger) {
+    res.send('Noch kein Trigger gesetzt.');
+  } else {
+    res.json(lastTrigger);
   }
-  res.json(lastTrigger);
 });
 
-// Root Info
-app.get('/', (req, res) => {
-  res.send('🌐 Wirklichkeits-API läuft. Endpunkte: POST /trigger, GET /status');
+app.post('/clear', (req, res) => {
+  lastTrigger = null;
+  res.send('Trigger wurde gelöscht.');
 });
 
-app.listen(PORT, () => {
-  console.log(`🌐 Wirklichkeits-API bereit auf Port ${PORT}`);
+app.get('/terms', (req, res) => {
+  res.send('Diese API speichert keine personenbezogenen Daten.');
+});
+
+app.listen(port, () => {
+  console.log(`🔊 Wirklichkeits-API bereit auf Port ${port}`);
 });
