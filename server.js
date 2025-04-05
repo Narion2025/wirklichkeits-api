@@ -80,6 +80,6 @@ app.post('/api/speak', async (req, res) => {
   }
 });
 
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`🔊 Wirklichkeits-API bereit auf http://127.0.0.1:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`🔊 Wirklichkeits-API bereit auf Port ${PORT}`);
 });
