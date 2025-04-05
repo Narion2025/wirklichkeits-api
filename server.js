@@ -1,25 +1,21 @@
+const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const express = require('express');
-const app = express();
+const axios = require('axios');
+const fs = require('fs');
 require('dotenv').config();
 
-const PORT = process.env.PORT || 10001;
+const app = express();
+const PORT = process.env.PORT || 6066;
 
-
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
-
-
-
+app.use(cors());
 app.use(express.json());
-
+app.use(bodyParser.urlencoded({ extended: true }));
 
 let lastTrigger = null;
 
 app.get('/', (req, res) => {
-  res.send('Wirklichkeits-API läuft. Endpunkte: POST /trigger, GET /status');
+  res.send('Wirklichkeits-API läuft. Endpunkte: POST /trigger, GET /status, POST /api/speak');
 });
 
 app.post('/trigger', (req, res) => {
@@ -45,22 +41,14 @@ app.get('/terms', (req, res) => {
   res.send('Diese API speichert keine personenbezogenen Daten.');
 });
 
-app.listen(PORT, () => {
-  console.log(`🔊 Wirklichkeits-API bereit auf Port ${port}`);
-});
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
-
-// NEU: Voice-Ausgabe via ElevenLabs
+// 🧠 ElevenLabs Sprach-API
 app.post('/api/speak', async (req, res) => {
   const { text } = req.body;
   const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-  const VOICE_ID = process.env.ELEVENLABS_VOICE_ID;
-  
-  if (!text) {
-    return res.status(400).json({ error: 'Kein Text angegeben.' });
-  }
+  const VOICE_ID = process.env.VOICE_ID;
+
+  console.log("▶️ Text empfangen:", text);
+  if (!text) return res.status(400).json({ error: 'Kein Text angegeben.' });
 
   try {
     const response = await axios.post(
@@ -86,7 +74,12 @@ app.post('/api/speak', async (req, res) => {
     response.data.pipe(res);
 
   } catch (error) {
-    console.error('🧨 ElevenLabs Fehler:', error.response?.data || error.message);
+    const errMsg = await error.response?.data?.text?.() || error.message;
+    console.error('🧨 ElevenLabs Fehler:', errMsg);
     res.status(500).json({ error: 'Fehler bei ElevenLabs-Anfrage.' });
   }
+});
+
+app.listen(PORT, '127.0.0.1', () => {
+  console.log(`🔊 Wirklichkeits-API bereit auf http://127.0.0.1:${PORT}`);
 });
