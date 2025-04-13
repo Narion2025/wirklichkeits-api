@@ -11,6 +11,14 @@ router.post('/emotion/hume/analyze', async (req, res) => {
   const apiKey = process.env.HUME_API_KEY;
   const voiceId = process.env.VOICE_ID;
 
+  // 🧪 DEBUG-LOG zur Diagnose
+  console.log("🧪 DEBUG PARAMS:", {
+    audioUrl,
+    apiKeyPresent: !!apiKey,
+    voiceIdPresent: !!voiceId,
+    envVoiceId: process.env.VOICE_ID
+  });
+
   if (!audioUrl || !apiKey || !voiceId) {
     return res.status(400).json({ error: 'Missing parameters' });
   }
@@ -19,8 +27,10 @@ router.post('/emotion/hume/analyze', async (req, res) => {
     const data = await analyzeEmotion(audioUrl, apiKey, voiceId);
     res.json(data);
   } catch (err) {
+    console.error("❌ Emotion API Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
 export default router;
+
