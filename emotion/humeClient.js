@@ -32,6 +32,4 @@ export async function analyzeEmotion(audioUrl, apiKey) {
   }
 
   return scores;
-}
-
-}
+} // ✅ Diese Klammer hat gefehlt!
