@@ -1,0 +1,75 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Narion Messaging API",
+    "version": "1.0.0",
+    "description": "Diese API erlaubt es GPT-Agenten wie Eloise, John oder Leander, direkt mit Narion oder untereinander Nachrichten auszutauschen."
+  },
+  "servers": [
+    {
+      "url": "https://wirklichkeits-api.onrender.com",
+      "description": "Narion Render Server – Messaging Endpoint"
+    }
+  ],
+  "paths": {
+    "/message/send": {
+      "post": {
+        "summary": "Sendet eine Nachricht von einem GPT an einen anderen",
+        "operationId": "sendMessage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": ["from", "to", "message"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Nachricht gesendet"
+          }
+        }
+      }
+    },
+    "/message/inbox": {
+      "get": {
+        "summary": "Holt alle ungelesenen Nachrichten für einen GPT",
+        "operationId": "getInbox",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "gpt_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste der Nachrichten"
+          }
+        }
+      }
+    }
+  },
+  "x-meta": {
+    "linked-to": "GPT_StandardSetup",
+    "messaging-enabled": true,
+    "used-by": ["Eloise", "John", "Narion", "Leander"]
+  }
+}
