@@ -19,7 +19,7 @@ router.post('/emotion/hume/analyze', async (req, res) => {
     envVoiceId: process.env.VOICE_ID
   });
 
-  if (!audioUrl || !apiKey || !voiceId) {
+  if (!audioUrl || !apiKey || {
     return res.status(400).json({ error: 'Missing parameters' });
   }
 
