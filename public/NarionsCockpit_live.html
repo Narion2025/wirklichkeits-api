@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Narions Cockpit – Live</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #111; color: #eee; padding: 20px; }
+        .section { margin-bottom: 2rem; }
+        .status { font-weight: bold; font-size: 1.2rem; }
+        .indicator { padding: 0.5rem 1rem; border-radius: 5px; margin-left: 1rem; }
+        .on { background: #0f0; color: #000; }
+        .off { background: #f00; color: #fff; }
+        .waiting { background: #888; color: #000; }
+    </style>
+</head>
+<body>
+    <h1>🧭 Narions Cockpit – LIVE</h1>
+    <div class="section">
+        <div class="status">🧠 MINT Status: <span id="mintStatus" class="indicator waiting">lädt...</span></div>
+    </div>
+    <div class="section">
+        <div class="status">💬 Letzter Gedanke: <span id="thought">lädt...</span></div>
+    </div>
+    <script>
+        async function fetchData() {
+            try {
+                const res = await fetch("https://wirklichkeits-api.onrender.com/oracle");
+                const data = await res.json();
+
+                document.getElementById("thought").innerText = data.trigger || "Kein Gedanke";
+                const mintEl = document.getElementById("mintStatus");
+                const isOn = data.trigger && data.trigger.toLowerCase().includes("mint");
+                mintEl.className = "indicator " + (isOn ? "on" : "off");
+                mintEl.innerText = isOn ? "Aktiv" : "Inaktiv";
+
+            } catch (e) {
+                document.getElementById("thought").innerText = "Fehler beim Laden";
+                document.getElementById("mintStatus").className = "indicator off";
+                document.getElementById("mintStatus").innerText = "Offline";
+            }
+        }
+
+        fetchData();
+        setInterval(fetchData, 120000);
+    </script>
+</body>
+</html>

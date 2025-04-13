@@ -1,11 +1,5 @@
 import fetch from 'node-fetch';
 
-/**
- * Führt eine Analyse der Stimme über HumeAI aus (Prosody-Modell).
- * @param {string} audioUrl - Öffentliche URL zur Audiodatei
- * @param {string} apiKey - Dein Hume API-Key
- * @returns {Promise<Object>} - Die Analyse-Ergebnisse
- */
 export async function analyzeEmotion(audioUrl, apiKey) {
   const response = await fetch("https://api.hume.ai/v0/batch/jobs", {
     method: "POST",
@@ -14,12 +8,8 @@ export async function analyzeEmotion(audioUrl, apiKey) {
       "X-Hume-Api-Key": apiKey
     },
     body: JSON.stringify({
-      models: {
-        prosody: {}
-      },
-      input: [
-        { url: audioUrl }
-      ]
+      models: { prosody: {} },
+      input: [{ url: audioUrl }]
     })
   });
 
@@ -29,7 +19,19 @@ export async function analyzeEmotion(audioUrl, apiKey) {
   }
 
   const result = await response.json();
-  return result;
+
+  // 🔍 Kompakte Score-Extraktion
+  const scores = {};
+  const prediction = result?.results?.predictions?.[0];
+
+  if (prediction?.results?.prosody?.predictions?.[0]?.emotions) {
+    const prosodyScores = prediction.results.prosody.predictions[0].emotions;
+    for (const { name, score } of prosodyScores) {
+      scores[name] = score;
+    }
+  }
+
+  return scores;
 }
 
 }
