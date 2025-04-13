@@ -1,0 +1,46 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+      "title": "Hume Voice Emotion API",
+      "version": "1.0.0",
+      "description": "Analyse von Emotionen in Sprache über Hume AI Voice API."
+    },
+    "servers": [
+      {
+        "url": "https://wirklichkeits-api.onrender.com"
+      }
+    ],
+    "paths": {
+      "/emotion/hume/analyze": {
+        "post": {
+          "summary": "Stimmemotion analysieren",
+          "operationId": "analyzeHumeEmotion",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "example": {
+                  "audioUrl": "https://yourdomain.com/audio/sample.mp3"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Emotion erkannt",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "dominantEmotion": "concerned",
+                    "valence": -0.42,
+                    "expressivity": 0.91
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  

@@ -1,9 +1,17 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const axios = require('axios');
-const fs = require('fs');
-require('dotenv').config();
+// server.js (vollständig konvertiert auf ESM-Syntax)
+
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import axios from 'axios';
+import fs from 'fs';
+import dotenv from 'dotenv';
+import humeRoute from './routes/humeRoute.js';
+dotenv.config();
+
+// 🧪 Testausgabe zur Prüfung der .env-Datei:
+console.log("💬 Hume VoiceID:", process.env.VOICE_ID);
+console.log("🔑 Hume API Key:", process.env.HUME_API_KEY);
 
 const app = express();
 const PORT = process.env.PORT || 6066;
@@ -17,6 +25,9 @@ let lastTrigger = null;
 app.get('/', (req, res) => {
   res.send('Wirklichkeits-API läuft. Endpunkte: POST /trigger, GET /status, POST /api/speak');
 });
+
+// Hume Middleware anbinden
+app.use('/', humeRoute);
 
 app.post('/trigger', (req, res) => {
   lastTrigger = req.body;
