@@ -1,0 +1,11 @@
+{
+    "defaultTone": "empathetic",
+    "stressThreshold": 6.0,
+    "sleepMinimum": 6.0,
+    "reactionStyles": {
+      "calm": ["slow-breathing pulse", "reduced brightness"],
+      "alert": ["avatar warns softly", "initiates care sequence"],
+      "neutral": ["observes silently", "waits for input"]
+    }
+  }
+  

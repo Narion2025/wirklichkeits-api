@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Narions Cockpit – Live Diagnose</title>
+    <style>
+        body { font-family: monospace; background: #111; color: #eee; padding: 2rem; }
+        h1 { color: #6cf; }
+        pre { background: #222; padding: 1rem; border-radius: 8px; color: #0f0; }
+        .error { color: red; }
+        .section { margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+    <h1>🧭 Narions Cockpit – Fallback-System</h1>
+
+    <div class="section">
+        <div>Statusprüfung:</div>
+        <pre id="statusOutput">Wird geladen...</pre>
+    </div>
+
+    <script>
+        const output = document.getElementById("statusOutput");
+
+        async function fetchWithFallbacks() {
+            const endpoints = [
+                "https://wirklichkeits-api.onrender.com/oracle",
+                "https://wirklichkeits-api.onrender.com/status",
+                "https://wirklichkeits-api.onrender.com/mind"
+            ];
+            for (const url of endpoints) {
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error("Antwort nicht OK");
+                    const data = await res.json();
+                    output.textContent = `✅ Erfolgreich geladen von ${url}\n` + JSON.stringify(data, null, 2);
+                    return;
+                } catch (e) {
+                    output.textContent = `⚠️ Fehler bei ${url}\n${e.message}`;
+                }
+            }
+            output.textContent += "\n❌ Alle Endpunkte fehlgeschlagen.";
+            output.classList.add("error");
+        }
+
+        fetchWithFallbacks();
+    </script>
+</body>
+</html>

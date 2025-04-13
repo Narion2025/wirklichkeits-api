@@ -1,0 +1,34 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Wirklichkeits-API Diagnose</title>
+    <style>
+        body { font-family: monospace; background: #111; color: #eee; padding: 2rem; }
+        h1 { color: #6cf; }
+        pre { background: #222; padding: 1rem; border-radius: 8px; color: #0f0; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🌐 Wirklichkeits-API – Live Diagnosetool</h1>
+    <p>Antwort vom Server:</p>
+    <pre id="output">Wird geladen...</pre>
+
+    <script>
+        async function fetchStatus() {
+            try {
+                const response = await fetch("https://wirklichkeits-api.onrender.com/oracle");
+                const data = await response.json();
+                document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+            } catch (e) {
+                document.getElementById("output").textContent = "❌ Fehler beim Abrufen: " + e;
+                document.getElementById("output").classList.add("error");
+            }
+        }
+
+        fetchStatus();
+    </script>
+</body>
+</html>

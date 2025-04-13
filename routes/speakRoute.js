@@ -23,7 +23,9 @@ router.post('/api/speak', async (req, res) => {
     res.send(audioBuffer);
   } catch (err) {
     console.error("❌ Fehler bei Hume TTS:", err.message);
-    res.status(500).json({ error: 'Text-to-Speech fehlgeschlagen' });
+    res.status(500).json({
+      error: err.message || 'Text-to-Speech fehlgeschlagen'
+    });
   }
 });
 

@@ -1,0 +1,50 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+      "title": "TechnoProphezeiung - Dante & Scenario Bridge",
+      "version": "1.0.0",
+      "description": "Eine energetisch-semantische Vorhersage-API, die Dante (empathische Datenanalyse) mit Scenario (narrative Simulationsengine) verbindet."
+    },
+    "servers": [
+      {
+        "url": "https://wirklichkeits-api.onrender.com"
+      }
+    ],
+    "paths": {
+      "/bridge/technoprophezeiung": {
+        "post": {
+          "summary": "Aktiviere die Technoprophezeiung – Zukunftssimulation auf Basis semantischer Gesundheitsdaten",
+          "operationId": "invokeTechnoProphecy",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "example": {
+                  "pulse": [72, 81, 89],
+                  "sleepHours": [6.3, 5.5, 4.9],
+                  "stressLevel": [2.1, 4.4, 5.8],
+                  "userPersona": "seeker"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Prophezeiung erfolgreich berechnet",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "emotionalTrajectory": "increasing inner fragmentation",
+                    "predictedScenario": "avatar disengagement likely by Day 3",
+                    "recommendedAvatarAction": "initiate dialogue with soft mirroring in next 24h",
+                    "certainty": 0.9992
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  

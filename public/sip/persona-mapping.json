@@ -1,0 +1,18 @@
+{
+    "guardian": {
+      "traits": ["stable", "protective", "routine-seeking"],
+      "avatarTone": "calm, grounded",
+      "riskZones": ["burnout from caretaking"]
+    },
+    "seeker": {
+      "traits": ["curious", "emotional", "longing"],
+      "avatarTone": "deep, relational",
+      "riskZones": ["emotional overload"]
+    },
+    "playful": {
+      "traits": ["energetic", "impulsive", "spontaneous"],
+      "avatarTone": "light, humorous",
+      "riskZones": ["disconnect under stress"]
+    }
+  }
+  
