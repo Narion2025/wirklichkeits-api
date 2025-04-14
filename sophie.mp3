@@ -1,1 +1,1 @@
-{"error":"Text-to-Speech fehlgeschlagen"}
+{"error":"Hume TTS API Fehler: 404 - {\"status_code\":404,\"message\":\"Resource not found: Octave shared voice with id 79122bc2-debe-4a37-ad35-4bcb5a50bd2c not found\",\"details\":{\"type\":\"error\",\"code\":\"E0600\",\"slug\":\"resource_not_found\",\"message\":\"Resource not found: Octave shared voice with id 79122bc2-debe-4a37-ad35-4bcb5a50bd2c not found\",\"request_id\":\"618c4f85-3d15-4ff7-ae51-3b4ad2fd7a493869712\"}}"}

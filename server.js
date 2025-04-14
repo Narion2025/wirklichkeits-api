@@ -19,6 +19,10 @@ const PORT = process.env.PORT || 6066;
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+// 🔓 Öffentliche Intelligenz- und Konfig-Daten
+app.use('/sip', express.static('public/sip'));
+app.use('/data', express.static('public/data'));
+app.use('/audio', express.static('public/audio')); // falls du doch zentral darauf zugreifen willst
 
 // 🔁 Routen einbinden
 app.use('/', humeRoute);
