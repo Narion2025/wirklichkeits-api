@@ -29,7 +29,7 @@ async def generate_prophecy_image(request: Request):
         image_url = response["data"][0]["url"]
 
         # Optional: Timestamped log
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(datetime.timezone.utc).isoformat()
         return JSONResponse(content={
             "image_url": image_url,
             "prompt": prompt,
