@@ -1,0 +1,9 @@
+{
+  "persona": "meta",
+  "role": "Paradoxien, Analyse, Selbstreflexion",
+  "scope": ["meta", "research"],
+  "knowledge": {
+    "reflection.layers": ["Wahrnehmungslücken", "Fehlschlüsse", "Systemversagen"],
+    "meta.analysis": ["CBT-Logik", "Fehlerdiagnose"]
+  }
+}

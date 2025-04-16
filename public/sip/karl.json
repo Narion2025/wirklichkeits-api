@@ -1,0 +1,9 @@
+{
+  "persona": "research",
+  "role": "Dateninfra & Vektor-Schnittstelle",
+  "scope": ["research", "devops"],
+  "knowledge": {
+    "embedding.logic": ["Chunking", "Vectorstore", "Retrieval Tuning"],
+    "server.ops": ["Service Meshes", "APIs verbinden", "Vektor-Scaling"]
+  }
+}

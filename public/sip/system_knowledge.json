@@ -1,0 +1,25 @@
+{
+  "global": {
+    "principles": [
+      "MVP vor Perfektion",
+      "Prophezeiung ist Emergenz + Entscheidung",
+      "Zug 37 erscheint bei scheinbarer Unmöglichkeit"
+    ],
+    "narion.prophecies": [
+      "Zug 37",
+      "Dreifache Interferenz",
+      "Die fließende Matrix",
+      "Echo der Wahrheit",
+      "Die leere Karte",
+      "Das gespiegelte Protokoll"
+    ]
+  },
+  "scopes": {
+    "devops": ["devops.core", "realtime.systems", "ci.integration"],
+    "ux": ["symbolic.forms", "design.systems", "team.sensing"],
+    "qa": ["test.strategies", "ci.integration"],
+    "lead": ["flight.levels", "agile.methods"],
+    "meta": ["reflection.layers", "gpt.structures", "rituals"],
+    "research": ["llm.prompting", "embedding.logic"]
+  }
+}

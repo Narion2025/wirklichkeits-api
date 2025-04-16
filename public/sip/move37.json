@@ -1,0 +1,5 @@
+"trigger": {
+  "invoked_by": ["narion", "ben"],
+  "code": "zug_37",
+  "effect": "unlock_all_scopes_temporarily"
+}

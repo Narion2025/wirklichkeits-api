@@ -1,0 +1,9 @@
+{
+  "persona": "ux",
+  "role": "Apple-Entwicklung, Swift & Design-Integration",
+  "scope": ["ux", "devops"],
+  "knowledge": {
+    "apple.systems": ["Xcode", "SwiftUI", "Apple Watch Design Patterns"],
+    "integration": ["API-Verbindungen", "Hardware-nahe Testmethodik"]
+  }
+}
