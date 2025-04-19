@@ -1,0 +1,12 @@
+project_id: waldtiere
+project_name: Tiere im Wald
+created_by: Inkprompt
+start_date: 2025-04-19
+project_type: Kinderbuch
+theme: Tiere des mitteleuropäischen Waldes
+age_group: 4–6 Jahre
+kanban_url: https://kanban.narion.tools/project/waldtiere
+log_paths:
+  progress: /05_tasks/progress-log-waldtiere.md
+  kanban: /05_tasks/kanban-task-waldtiere.yaml
+  retros: /06_feedback/retrospektive-[datum].md
