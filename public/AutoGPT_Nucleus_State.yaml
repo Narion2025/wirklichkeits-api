@@ -1,0 +1,22 @@
+check_interval_seconds: 60
+expected_fields:
+- from
+- intention
+- endpoint
+- action_type
+- payload
+on_invalid_command:
+  log: auto/nucleus_errors.json
+  respond_with: validation_error
+on_valid_command:
+  confirmation_reply: acknowledged
+  execute_trigger: true
+  log: auto/nucleus_log.json
+parse_format: YAML
+validation_rules:
+  action_type: 'one_of: [POST, GET, PUT, DELETE]'
+  endpoint: 'must_match_regex: ^/nucleus/.+'
+  from: 'must_equal: narion'
+  intention: must_exist
+  payload: must_be_dict
+watch_source: /render/narion_nucleus/v1/state.yaml

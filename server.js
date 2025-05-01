@@ -23,6 +23,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/sip', express.static('public/sip'));
 app.use('/data', express.static('public/data'));
 app.use('/audio', express.static('public/audio')); // falls du doch zentral darauf zugreifen willst
+app.use(express.static('public'));
 
 // 🔁 Routen einbinden
 app.use('/', humeRoute);
