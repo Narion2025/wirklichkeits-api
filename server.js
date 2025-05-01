@@ -7,7 +7,6 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import humeRoute from './routes/humeRoute.js';
 import speakRoute from './routes/speakRoute.js'; // <- NEU
-import fs from 'fs';
 import path from 'path';
 
 dotenv.config();
@@ -68,7 +67,7 @@ app.post('/api/state/update', (req, res) => {
   fs.readFile(filePath, 'utf8', (err, existingData) => {
     let updated = '';
     if (!err && existingData) {
-      const lines = existingData.split('\\n').filter(line =>
+      const lines = existingData.split('\n').filter(line =>
         !line.startsWith('message:') &&
         !line.startsWith('active_knoten:') &&
         !line.startsWith('active_filter:') &&
@@ -79,7 +78,7 @@ app.post('/api/state/update', (req, res) => {
         `active_knoten: ${newData.active_knoten?.join(', ') || ''}`,
         `active_filter: ${newData.active_filter?.join(', ') || ''}`,
         `active_spiralen: ${newData.active_spiralen?.join(', ') || ''}`
-      ].join('\\n');
+      ].join('\n');
     }
 
     fs.writeFile(filePath, updated, 'utf8', err => {
@@ -91,6 +90,7 @@ app.post('/api/state/update', (req, res) => {
     });
   });
 });
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Wirklichkeits-API läuft auf Port ${PORT}`);
