@@ -1,0 +1,6 @@
+action: fetch_state
+payload:
+  url: https://wirklichkeits-api.onrender.com/state.yaml
+source: Narion
+trace_id: initiation_test_001
+urgency: 2
