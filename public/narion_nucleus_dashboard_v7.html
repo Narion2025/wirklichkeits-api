@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>Narion Nucleus Dashboard v6</title>
-    <style>
+<meta charset="utf-8"/>
+<title>Narion Nucleus Dashboard v6</title>
+<style>
         body { font-family: Arial, sans-serif; background-color: #0f0f0f; color: #f0f0f0; padding: 2em; }
         h1, h2 { color: #00ffc8; }
         .section { margin-bottom: 2em; }
@@ -13,7 +14,7 @@
         .highlight { background-color: #444400; color: #ffff88; font-weight: bold; }
         pre { background-color: #1a1a1a; padding: 1em; border-radius: 0.5em; overflow-x: auto; white-space: pre-wrap; }
     </style>
-    <script>
+<script>
         let currentRole = "", currentStatus = "", currentEthik = "", currentSpiral = "";
 
         async function updateDashboard() {
@@ -75,39 +76,66 @@
             updateDashboard();
             loadSemantikModul();
         };
-    </script>
+    
+async function updateSpiralView() {
+    try {
+        const res = await fetch('https://wirklichkeits-api.onrender.com/state.yaml');
+        const text = await res.text();
+        const lines = text.split('\n');
+        const state = {};
+        for (const line of lines) {
+            const [key, ...rest] = line.split(':');
+            if (key && rest.length) {
+                state[key.trim().toLowerCase()] = rest.join(':').trim();
+            }
+        }
+
+        document.getElementById('spiral-erkannt').textContent = state['spiral_erkannt'] || '–';
+        document.getElementById('entdeckte-rollen').textContent = state['entdeckte_rollen'] || '–';
+    } catch (err) {
+        console.error("Fehler beim Laden der Spiralzustände");
+    }
+}
+setInterval(updateSpiralView, 15000);
+window.onload = () => {
+    updateDashboard();
+    loadSemantikModul();
+    updateSpiralView();
+};
+</script>
 </head>
 <body>
-    <h1>Narion Nucleus – Dashboard v6</h1>
+<h1>Narion Nucleus – Dashboard v6</h1>
+<section class="section">
+<h2>🔍 Systemstatus</h2>
+<p><span class="label">Identität:</span><span class="value" id="identitaet">…</span></p>
+<p><span class="label">Rolle:</span><span class="value" id="rolle">…</span></p>
+<p><span class="label">Status:</span><span class="value" id="status">…</span></p>
+<p><span class="label">Ethik:</span><span class="value" id="ethik">…</span></p>
+<p><span class="label">Anbindung:</span><span class="value" id="anbindung">…</span></p>
+<p><span class="label">Letzter Eintrag:</span><span class="value" id="letzte">…</span></p>
+</section>
+<section class="section">
+<h2>🌓 Tagesroutine</h2>
+<p>Zyklusphase: <span id="zyklus-phase">–</span></p>
+<p>Spiral Dynamics: <span id="spiral-color">–</span></p>
+</section>
+<section class="section">
+<h2>🧠 MIND Map (Live)</h2>
+<p><span class="label">Aktive Knoten:</span> <span id="active-knoten">–</span></p>
+<p><span class="label">Aktive Filter:</span> <span id="active-filter">–</span></p>
+<p><span class="label">Aktive Spiralen:</span> <span id="active-spiralen">–</span></p>
+</section>
+<section class="section">
+<h2>🧬 Semantisches Selbstverständnis</h2>
+<pre id="semantik-raw">Wird geladen…</pre>
+</section>
+<div class="error" id="error"></div>
 
-    <section class="section">
-        <h2>🔍 Systemstatus</h2>
-        <p><span class="label">Identität:</span><span class="value" id="identitaet">…</span></p>
-        <p><span class="label">Rolle:</span><span class="value" id="rolle">…</span></p>
-        <p><span class="label">Status:</span><span class="value" id="status">…</span></p>
-        <p><span class="label">Ethik:</span><span class="value" id="ethik">…</span></p>
-        <p><span class="label">Anbindung:</span><span class="value" id="anbindung">…</span></p>
-        <p><span class="label">Letzter Eintrag:</span><span class="value" id="letzte">…</span></p>
-    </section>
-
-    <section class="section">
-        <h2>🌓 Tagesroutine</h2>
-        <p>Zyklusphase: <span id="zyklus-phase">–</span></p>
-        <p>Spiral Dynamics: <span id="spiral-color">–</span></p>
-    </section>
-
-    <section class="section">
-        <h2>🧠 MIND Map (Live)</h2>
-        <p><span class="label">Aktive Knoten:</span> <span id="active-knoten">–</span></p>
-        <p><span class="label">Aktive Filter:</span> <span id="active-filter">–</span></p>
-        <p><span class="label">Aktive Spiralen:</span> <span id="active-spiralen">–</span></p>
-    </section>
-
-    <section class="section">
-        <h2>🧬 Semantisches Selbstverständnis</h2>
-        <pre id="semantik-raw">Wird geladen…</pre>
-    </section>
-
-    <div id="error" class="error"></div>
+<section class="section">
+<h2>🌈 Spiral Dynamics – Reflexion</h2>
+<p><span class="label">Erkannte Spiralzustände:</span> <span id="spiral-erkannt">–</span></p>
+<p><span class="label">Neu entdeckte Rollen:</span> <span id="entdeckte-rollen">–</span></p>
+</section>
 </body>
 </html>
