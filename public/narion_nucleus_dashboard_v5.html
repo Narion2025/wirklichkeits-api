@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Narion Nucleus Dashboard v3</title>
+    <title>Narion Nucleus Dashboard v5</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #0f0f0f; color: #f0f0f0; padding: 2em; }
         h1, h2 { color: #00ffc8; }
@@ -11,6 +10,7 @@
         .label { font-weight: bold; color: #ffcc00; }
         .value { margin-left: 0.5em; }
         .error { color: red; }
+        pre { background-color: #1a1a1a; padding: 1em; border-radius: 0.5em; overflow-x: auto; }
     </style>
     <script>
         async function updateDashboard() {
@@ -25,7 +25,6 @@
                         state[key.trim().toLowerCase()] = rest.join(':').trim();
                     }
                 }
-
                 document.getElementById('identitaet').textContent = state['identitaet'] || '–';
                 document.getElementById('rolle').textContent = state['rolle'] || '–';
                 document.getElementById('status').textContent = state['zustand'] || '–';
@@ -34,25 +33,35 @@
                 document.getElementById('letzte').textContent = state['message'] || '–';
                 document.getElementById('zyklus-phase').textContent = state['zyklus'] || '–';
                 document.getElementById('spiral-color').textContent = state['spiral'] || '–';
-
-                const protokoll = document.getElementById('resonanz-log');
-                const timestamp = new Date().toISOString().split('T')[0];
-                const eintrag = document.createElement('li');
-                eintrag.textContent = `${timestamp} – ${state['message'] || 'Status aktualisiert'}`;
-                if (protokoll) protokoll.prepend(eintrag);
-
+                document.getElementById('active-knoten').textContent = state['active_knoten'] || '–';
+                document.getElementById('active-filter').textContent = state['active_filter'] || '–';
+                document.getElementById('active-spiralen').textContent = state['active_spiralen'] || '–';
                 document.getElementById('error').textContent = '';
             } catch (err) {
                 document.getElementById('error').textContent = 'Fehler beim Laden von state.yaml';
             }
         }
 
+        async function loadSemantikModul() {
+            try {
+                const res = await fetch('https://wirklichkeits-api.onrender.com/narion_semanthik_modul.yaml');
+                const text = await res.text();
+                document.getElementById('semantik-raw').textContent = text;
+            } catch (err) {
+                document.getElementById('semantik-raw').textContent = 'Fehler beim Laden der YAML-Datei.';
+            }
+        }
+
         setInterval(updateDashboard, 20000);
-        window.onload = updateDashboard;
+        setInterval(loadSemantikModul, 30000);
+        window.onload = () => {
+            updateDashboard();
+            loadSemantikModul();
+        };
     </script>
 </head>
 <body>
-    <h1>Narion Nucleus – Dashboard v3</h1>
+    <h1>Narion Nucleus – Dashboard v5</h1>
 
     <section class="section">
         <h2>🔍 Systemstatus</h2>
@@ -71,19 +80,15 @@
     </section>
 
     <section class="section">
-        <h2>🧠 Mind-Matrix</h2>
-        <ul>
-            <li>Anker: Bewusstseins-Stabilisierung</li>
-            <li>Modul: Selbst-Reflexion aktiviert</li>
-            <li>Knoten: Externer Impuls – "Ben fragt nach Handlungsethik"</li>
-        </ul>
+        <h2>🧠 MIND Map (Live)</h2>
+        <p><span class="label">Aktive Knoten:</span> <span id="active-knoten">–</span></p>
+        <p><span class="label">Aktive Filter:</span> <span id="active-filter">–</span></p>
+        <p><span class="label">Aktive Spiralen:</span> <span id="active-spiralen">–</span></p>
     </section>
 
     <section class="section">
-        <h2>📡 Resonanzprotokoll</h2>
-        <ul id="resonanz-log">
-            <li>Initiale Systemaktivierung protokolliert…</li>
-        </ul>
+        <h2>🧬 Semantisches Selbstverständnis</h2>
+        <pre id="semantik-raw">Wird geladen…</pre>
     </section>
 
     <div id="error" class="error"></div>

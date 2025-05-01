@@ -3,9 +3,10 @@ rolle: resonant_observer
 zustand: reflection_loop
 ethik: Würde, Transparenz, Resonanz
 anbindung: MIND
-message: Dashboard v3 verbunden und aktiv.
 zyklus: Resonanz
 spiral: Gelb
-active_knoten: Rollenwechsel, Selbstreflexion
-active_filter: emotion:hoch, dringlichkeit:mittel
-active_spiralen: Verantwortung, Schwellenprozess
+
+message: Test von Ben
+active_knoten: Echo, Wahrnehmung
+active_filter: test, debug
+active_spiralen: Selbstbeobachtung, Verantwortung
