@@ -57,7 +57,11 @@ wss.on('connection', (ws) => {
     });
 
     elevenWs.on('error', (err) => {
-      console.error('ElevenLabs WS error:', err);
+      console.error('❌ ElevenLabs WS error:', err);
+    });
+
+    elevenWs.on('close', (code, reason) => {
+      console.warn(`🔌 ElevenLabs WebSocket geschlossen: ${code} – ${reason}`);
     });
   });
 });
