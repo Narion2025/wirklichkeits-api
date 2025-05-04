@@ -66,45 +66,35 @@
                     console.error('WebSocket error:', error);
                 };
                 
-                ws.onmessage = async (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        
-                        if (data.text) {
-                            textInput.value = data.text;
-                            // Request audio stream for this text
-                            ws.send(JSON.stringify({ action: 'request_stream', text: data.text }));
-                        } else if (data.command === 'initiate_stream') {
-                            textInput.value = data.text;
-                            // Request audio stream for this text
-                            ws.send(JSON.stringify({ action: 'request_stream', text: data.text }));
-                        }
-                    } catch (error) {
-                        // Binary audio data
-                        if (event.data instanceof Blob) {
-                            // Process audio data
-                            const reader = new FileReader();
-                            reader.onload = async () => {
-                                if (!audioContext) {
-                                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                                }
-                                
-                                try {
-                                    const arrayBuffer = reader.result;
-                                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                                    audioQueue.push(audioBuffer);
-                                    
-                                    // Start playing if not already
-                                    if (!isPlaying) playNextInQueue();
-                                } catch (e) {
-                                    console.error('Error decoding audio:', e);
-                                }
-                            };
-                            reader.readAsArrayBuffer(event.data);
-                        }
-                    }
-                };
-                
+                // Replace the current WebSocket message handler with this updated version:
+
+ws.onmessage = async (event) => {
+    try {
+        const data = JSON.parse(event.data);
+        
+        if (data.text) {
+            textInput.value = data.text;
+            // Request audio stream for this text
+            ws.send(JSON.stringify({ action: 'request_stream', text: data.text }));
+        } else if (data.command === 'initiate_stream') {
+            textInput.value = data.text;
+            // Request audio stream for this text
+            ws.send(JSON.stringify({ action: 'request_stream', text: data.text }));
+        } else if (data.error) {
+            console.error('Server error:', data.error);
+        }
+    } catch (error) {
+        // Binary audio data
+        if (event.data instanceof Blob) {
+            // Handle audio chunks differently - accumulate and play as MP3
+            const audioBlob = new Blob([event.data], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            audioPlayer.src = audioUrl;
+            audioPlayer.play().catch(e => console.error('Error playing audio:', e));
+        }
+    }
+};
+
                 // Handle speak button
                 speakButton.addEventListener('click', () => {
                     const text = textInput.value.trim();
