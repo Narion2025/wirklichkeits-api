@@ -1,7 +1,6 @@
 {
     "name": "wirklichkeits-api",
     "version": "1.0.0",
-    "type": "module",
     "description": "Modularer API-Server für GPT Actions",
     "main": "server.js",
     "scripts": {
