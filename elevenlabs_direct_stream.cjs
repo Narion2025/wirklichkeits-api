@@ -1,9 +1,12 @@
 // 📦 INSTALL:
-// npm install express ws axios dotenv
+// npm install express ws axios dotenv elevenlabs play-sound
 
 const express = require('express');
 const WebSocket = require('ws');
 const axios = require('axios');
+const { stream } = require('elevenlabs');
+const player = require('play-sound')();
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -28,6 +31,36 @@ app.post('/speak', async (req, res) => {
       client.send(JSON.stringify({ text }));
     }
   });
+});
+
+// 📡 Direktanfrage mit Audioausgabe (POST /narion-speak)
+app.post('/narion-speak', async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).send('Text fehlt');
+  console.log('🗣 Narion sagt (API):', text);
+
+  try {
+    const audioStream = await stream({
+      apiKey: process.env.ELEVENLABS_API_KEY,
+      voiceId: process.env.VOICE_ID,
+      text,
+    });
+
+    const filePath = './narion_output.mp3';
+    const file = fs.createWriteStream(filePath);
+    audioStream.pipe(file);
+
+    file.on('finish', () => {
+      player.play(filePath, (err) => {
+        if (err) console.error('🎧 Fehler beim Abspielen:', err);
+      });
+    });
+
+    res.send('Narion spricht jetzt.');
+  } catch (err) {
+    console.error('⚠️ Fehler bei ElevenLabs:', err);
+    res.status(500).send('Fehler beim Sprechen');
+  }
 });
 
 // 🌐 WebSocket for frontend audio streaming
