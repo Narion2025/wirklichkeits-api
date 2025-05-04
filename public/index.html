@@ -1,73 +1,139 @@
-// 📦 INSTALL:
-// npm install express ws axios dotenv
+/<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wirklichkeits API - Voice Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        button { padding: 10px 15px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; }
+        #status { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .connected { background-color: #dff0d8; color: #3c763d; }
+        .disconnected { background-color: #f2dede; color: #a94442; }
+        #playback-area { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wirklichkeits API - Voice Demo</h1>
+        
+        <div id="status" class="disconnected">WebSocket disconnected</div>
+        
+        <textarea id="text-input" placeholder="Enter text to speak"></textarea>
+        <button id="speak-button">Speak</button>
+        
+        <div id="playback-area">
+            <h3>Audio Playback</h3>
+            <audio id="audio-player" controls></audio>
+        </div>
+    </div>
 
-const express = require('express');
-const WebSocket = require('ws');
-const axios = require('axios');
-require('dotenv').config();
-
-const app = express();
-const port = process.env.PORT || 3000;
-
-// ✨ Serve frontend for testing
-app.use(express.static('public'));
-app.use(express.json());
-
-let lastText = '';
-
-app.post('/speak', async (req, res) => {
-  const { text } = req.body;
-  if (!text) return res.status(400).send('No text provided');
-  lastText = text;
-  console.log('Received text:', text);
-  res.send('Text received');
-
-  // Trigger stream for all WebSocket clients
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ text }));
-    }
-  });
-});
-
-// 🌐 WebSocket for frontend audio streaming
-const wss = new WebSocket.Server({ noServer: true });
-
-wss.on('connection', (ws) => {
-  console.log('Frontend connected');
-
-  ws.on('message', async (msg) => {
-    const { text } = JSON.parse(msg);
-    if (!text) return;
-
-    const elevenWs = new WebSocket(`wss://api.elevenlabs.io/v1/text-to-speech/${process.env.VOICE_ID}/stream`, {
-      headers: {
-        'xi-api-key': process.env.ELEVENLABS_API_KEY,
-      },
-    });
-
-    elevenWs.on('open', () => {
-      elevenWs.send(JSON.stringify({ text, model_id: 'eleven_monolingual_v1' }));
-    });
-
-    elevenWs.on('message', (data) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(data);
-      }
-    });
-
-    elevenWs.on('error', (err) => {
-      console.error('ElevenLabs WS error:', err);
-    });
-  });
-});
-
-const server = app.listen(port, () => {
-  console.log(`🚀 Server listening on port ${port}`);
-});
-
-server.on('upgrade', (req, socket, head) => {
-  wss.handleUpgrade(req, socket, head, (ws) => {
-    wss.emit('connection', ws, req);
-  });
-});
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const statusEl = document.getElementById('status');
+            const textInput = document.getElementById('text-input');
+            const speakButton = document.getElementById('speak-button');
+            const audioPlayer = document.getElementById('audio-player');
+            
+            let audioContext;
+            let audioQueue = [];
+            let isPlaying = false;
+            
+            // Connect WebSocket
+            const connectWebSocket = () => {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const ws = new WebSocket(`${protocol}//${window.location.host}`);
+                
+                ws.onopen = () => {
+                    statusEl.textContent = 'WebSocket connected';
+                    statusEl.className = 'connected';
+                    speakButton.disabled = false;
+                };
+                
+                ws.onclose = () => {
+                    statusEl.textContent = 'WebSocket disconnected';
+                    statusEl.className = 'disconnected';
+                    speakButton.disabled = true;
+                    
+                    // Attempt to reconnect
+                    setTimeout(connectWebSocket, 3000);
+                };
+                
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+                
+                ws.onmessage = async (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.text) {
+                            textInput.value = data.text;
+                            // Request audio stream for this text
+                            ws.send(JSON.stringify({ action: 'request_stream', text: data.text }));
+                        } else if (data.command === 'initiate_stream') {
+                            textInput.value = data.text;
+                            // Request audio stream for this text
+                            ws.send(JSON.stringify({ action: 'request_stream', text: data.text }));
+                        }
+                    } catch (error) {
+                        // Binary audio data
+                        if (event.data instanceof Blob) {
+                            // Process audio data
+                            const reader = new FileReader();
+                            reader.onload = async () => {
+                                if (!audioContext) {
+                                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                                }
+                                
+                                try {
+                                    const arrayBuffer = reader.result;
+                                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                                    audioQueue.push(audioBuffer);
+                                    
+                                    // Start playing if not already
+                                    if (!isPlaying) playNextInQueue();
+                                } catch (e) {
+                                    console.error('Error decoding audio:', e);
+                                }
+                            };
+                            reader.readAsArrayBuffer(event.data);
+                        }
+                    }
+                };
+                
+                // Handle speak button
+                speakButton.addEventListener('click', () => {
+                    const text = textInput.value.trim();
+                    if (text && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ action: 'request_stream', text: text }));
+                    }
+                });
+                
+                // Function to play next audio in queue
+                function playNextInQueue() {
+                    if (audioQueue.length === 0) {
+                        isPlaying = false;
+                        return;
+                    }
+                    
+                    isPlaying = true;
+                    const audioBuffer = audioQueue.shift();
+                    const source = audioContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(audioContext.destination);
+                    
+                    source.onended = () => playNextInQueue();
+                    source.start(0);
+                }
+            };
+            
+            // Initial connection
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html>

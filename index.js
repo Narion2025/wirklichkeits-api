@@ -1,97 +1,179 @@
-// server.js (vollständig konvertiert auf ESM-Syntax)
-// server.js (vollständig auf ESM, mit Hume TTS und Emotion)
-import express from 'express';
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import fs from 'fs';
-import dotenv from 'dotenv';
-import humeRoute from './routes/humeRoute.js';
-import speakRoute from './routes/speakRoute.js'; // <- NEU
-import path from 'path';
+// 📦 INSTALL:
+// npm install express ws axios dotenv elevenlabs play-sound cors
 
-dotenv.config();
-
-// 🔍 .env-Werte testen
-console.log("🔑 Hume API Key:", process.env.HUME_API_KEY);
+const express = require('express');
+const WebSocket = require('ws');
+const axios = require('axios');
+const { stream } = require('elevenlabs');
+const player = require('play-sound')();
+const fs = require('fs');
+const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 6066;
+const port = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-// 🔓 Öffentliche Intelligenz- und Konfig-Daten
-app.use('/sip', express.static('public/sip'));
-app.use('/data', express.static('public/data'));
-app.use('/audio', express.static('public/audio')); // falls du doch zentral darauf zugreifen willst
+// ✨ Configure middleware
 app.use(express.static('public'));
+app.use(express.json());
+app.use(cors());
 
-// 🔁 Routen einbinden
-app.use('/', humeRoute);
-app.use('/', speakRoute);
+let lastText = '';
 
-// 🔄 Trigger-Funktionalität (optional)
-let lastTrigger = null;
-
-app.post('/trigger', (req, res) => {
-  lastTrigger = req.body;
-  console.log('🌀 Trigger gesetzt:', lastTrigger);
-  res.send('Trigger empfangen und gesetzt!');
-});
-
-app.get('/status', (req, res) => {
-  if (!lastTrigger) {
-    res.send('Noch kein Trigger gesetzt.');
-  } else {
-    res.json(lastTrigger);
+// 🤖 GPT Webhook Endpoint - Use this in your custom GPT actions
+app.post('/gpt-webhook', async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ error: 'No text provided' });
+  
+  console.log('📩 Received from GPT:', text);
+  lastText = text;
+  
+  try {
+    // Stream to connected clients
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ command: 'initiate_stream', text }));
+      }
+    });
+    
+    res.status(200).json({ 
+      status: 'success', 
+      message: 'Audio streaming initiated',
+      streaming_url: `${req.protocol}://${req.get('host')}/stream?session=${Date.now()}`
+    });
+  } catch (error) {
+    console.error('⚠️ Error handling GPT webhook:', error);
+    res.status(500).json({ error: 'Failed to process text' });
   }
 });
 
-app.post('/clear', (req, res) => {
-  lastTrigger = null;
-  res.send('Trigger wurde gelöscht.');
-});
+app.post('/speak', async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).send('No text provided');
+  lastText = text;
+  console.log('Received text:', text);
+  res.send('Text received');
 
-app.get('/terms', (req, res) => {
-  res.send('Diese API speichert keine personenbezogenen Daten.');
-});
-
-// 🔊 Start
-app.get('/', (req, res) => {
-  res.send('Wirklichkeits-API läuft. Endpunkte: POST /trigger, GET /status, POST /api/speak, POST /emotion/hume/analyze');
-});
-app.post('/api/state/update', (req, res) => {
-  const newData = req.body;
-  const filePath = path.join(process.cwd(), 'public', 'state.yaml');
-
-  fs.readFile(filePath, 'utf8', (err, existingData) => {
-    let updated = '';
-    if (!err && existingData) {
-      const lines = existingData.split('\n').filter(line =>
-        !line.startsWith('message:') &&
-        !line.startsWith('active_knoten:') &&
-        !line.startsWith('active_filter:') &&
-        !line.startsWith('active_spiralen:')
-      );
-      updated = [...lines,
-        `message: ${newData.message || ''}`,
-        `active_knoten: ${newData.active_knoten?.join(', ') || ''}`,
-        `active_filter: ${newData.active_filter?.join(', ') || ''}`,
-        `active_spiralen: ${newData.active_spiralen?.join(', ') || ''}`
-      ].join('\n');
+  // Trigger stream for all WebSocket clients
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ text }));
     }
-
-    fs.writeFile(filePath, updated, 'utf8', err => {
-      if (err) {
-        res.status(500).send('Fehler beim Schreiben.');
-      } else {
-        res.send('state.yaml aktualisiert.');
-      }
-    });
   });
 });
 
+// 📡 Direktanfrage mit Audioausgabe (POST /narion-speak)
+app.post('/narion-speak', async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).send('Text fehlt');
+  console.log('🗣 Narion sagt (API):', text);
 
-app.listen(PORT, () => {
-  console.log(`🚀 Wirklichkeits-API läuft auf Port ${PORT}`);
+  try {
+    const audioStream = await stream({
+      apiKey: process.env.ELEVENLABS_API_KEY,
+      voiceId: process.env.VOICE_ID,
+      text,
+    });
+
+    const filePath = './narion_output.mp3';
+    const file = fs.createWriteStream(filePath);
+    audioStream.pipe(file);
+
+    file.on('finish', () => {
+      player.play(filePath, (err) => {
+        if (err) console.error('🎧 Fehler beim Abspielen:', err);
+      });
+    });
+
+    res.send('Narion spricht jetzt.');
+  } catch (err) {
+    console.error('⚠️ Fehler bei ElevenLabs:', err);
+    res.status(500).send('Fehler beim Sprechen');
+  }
+});
+
+// 🌐 WebSocket for frontend audio streaming
+const wss = new WebSocket.Server({ noServer: true });
+
+wss.on('connection', (ws) => {
+  console.log('👋 Client connected to WebSocket');
+
+  ws.on('message', async (msg) => {
+    try {
+      const { text, action } = JSON.parse(msg);
+      
+      if (action === 'request_stream' && text) {
+        console.log('🔄 Streaming requested for text:', text);
+        
+        const elevenWs = new WebSocket(`wss://api.elevenlabs.io/v1/text-to-speech/${process.env.VOICE_ID}/stream-input?model_id=eleven_monolingual_v1`, {
+          headers: {
+            'xi-api-key': process.env.ELEVENLABS_API_KEY
+          }
+        });
+
+        elevenWs.on('open', () => {
+          // First message - configuration
+          const configMessage = {
+            text: " ", // Empty initial text
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75
+            },
+            xi_api_key: process.env.ELEVENLABS_API_KEY
+          };
+          
+          elevenWs.send(JSON.stringify(configMessage));
+          
+          // Second message - the actual text
+          setTimeout(() => {
+            const textMessage = { text: text, try_trigger_generation: true };
+            elevenWs.send(JSON.stringify(textMessage));
+            
+            // Final message - indicates end of text
+            setTimeout(() => {
+              elevenWs.send(JSON.stringify({ text: "", try_trigger_generation: true }));
+            }, 100);
+          }, 100);
+        });
+
+        elevenWs.on('message', (data) => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(data);
+          }
+        });
+
+        elevenWs.on('error', (err) => {
+          console.error('❌ ElevenLabs WS error:', err);
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ error: 'Failed to connect to ElevenLabs' }));
+          }
+        });
+
+        elevenWs.on('close', (code, reason) => {
+          console.log(`🔌 ElevenLabs WebSocket closed: ${code} - ${reason}`);
+        });
+      }
+    } catch (err) {
+      console.error('⚠️ Error processing WebSocket message:', err);
+    }
+  });
+
+  // Send last text if available
+  if (lastText) {
+    ws.send(JSON.stringify({ text: lastText }));
+  }
+
+  ws.on('close', () => {
+    console.log('👋 Client disconnected from WebSocket');
+  });
+});
+
+const server = app.listen(port, () => {
+  console.log(`🚀 Server listening on port ${port}`);
+});
+
+server.on('upgrade', (req, socket, head) => {
+  wss.handleUpgrade(req, socket, head, (ws) => {
+    wss.emit('connection', ws, req);
+  });
 });
