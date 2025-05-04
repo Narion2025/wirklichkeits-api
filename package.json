@@ -3,9 +3,7 @@
     "version": "1.0.0",
     "description": "Modularer API-Server für GPT Actions",
     "main": "index.js",
-    "type": "module"
-"type": "module"
-
+    "type": "module",
     "scripts": {
         "start": "node index.js",
         "dev": "node server.js"
