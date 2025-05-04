@@ -3,32 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wirklichkeits API - Voice Demo</title>
+    <title>GPT Voice Interface</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
         .container { border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
-        button { padding: 10px 15px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #45a049; }
-        textarea { width: 100%; height: 100px; margin: 10px 0; }
+        textarea { width: 100%; height: 120px; margin: 10px 0; }
+        button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; }
         #status { margin: 10px 0; padding: 10px; border-radius: 4px; }
         .connected { background-color: #dff0d8; color: #3c763d; }
         .disconnected { background-color: #f2dede; color: #a94442; }
-        #playback-area { margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Wirklichkeits API - Voice Demo</h1>
+        <h1>GPT Voice Interface</h1>
         
-        <div id="status" class="disconnected">WebSocket disconnected</div>
+        <div id="status" class="disconnected">Disconnected</div>
         
-        <textarea id="text-input" placeholder="Enter text to speak"></textarea>
+        <textarea id="text-input" placeholder="Enter text to speak..."></textarea>
         <button id="speak-button">Speak</button>
         
-        <div id="playback-area">
-            <h3>Audio Playback</h3>
-            <audio id="audio-player" controls></audio>
-        </div>
+        <audio id="audio-player" controls style="display: block; margin-top: 20px;"></audio>
     </div>
 
     <script>
@@ -38,91 +33,55 @@
             const speakButton = document.getElementById('speak-button');
             const audioPlayer = document.getElementById('audio-player');
             
-            let audioContext;
-            let audioQueue = [];
-            let isPlaying = false;
+            // Connect to WebSocket
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const ws = new WebSocket(`${protocol}//${window.location.host}`);
             
-            // Connect WebSocket
-            const connectWebSocket = () => {
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const ws = new WebSocket(`${protocol}//${window.location.host}`);
+            ws.onopen = () => {
+                statusEl.textContent = 'Connected';
+                statusEl.className = 'connected';
+                speakButton.disabled = false;
+            };
+            
+            ws.onclose = () => {
+                statusEl.textContent = 'Disconnected';
+                statusEl.className = 'disconnected';
+                speakButton.disabled = true;
                 
-                ws.onopen = () => {
-                    statusEl.textContent = 'WebSocket connected';
-                    statusEl.className = 'connected';
-                    speakButton.disabled = false;
-                };
-                
-                ws.onclose = () => {
-                    statusEl.textContent = 'WebSocket disconnected';
-                    statusEl.className = 'disconnected';
-                    speakButton.disabled = true;
-                    
-                    // Attempt to reconnect
-                    setTimeout(connectWebSocket, 3000);
-                };
-                
-                ws.onerror = (error) => {
-                    console.error('WebSocket error:', error);
-                };
-                
-                // Replace the current WebSocket message handler with this updated version:
-
-ws.onmessage = async (event) => {
-    try {
-        const data = JSON.parse(event.data);
-        
-        if (data.text) {
-            textInput.value = data.text;
-            // Request audio stream for this text
-            ws.send(JSON.stringify({ action: 'request_stream', text: data.text }));
-        } else if (data.command === 'initiate_stream') {
-            textInput.value = data.text;
-            // Request audio stream for this text
-            ws.send(JSON.stringify({ action: 'request_stream', text: data.text }));
-        } else if (data.error) {
-            console.error('Server error:', data.error);
-        }
-    } catch (error) {
-        // Binary audio data
-        if (event.data instanceof Blob) {
-            // Handle audio chunks differently - accumulate and play as MP3
-            const audioBlob = new Blob([event.data], { type: 'audio/mpeg' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            audioPlayer.src = audioUrl;
-            audioPlayer.play().catch(e => console.error('Error playing audio:', e));
-        }
-    }
-};
-
-                // Handle speak button
-                speakButton.addEventListener('click', () => {
-                    const text = textInput.value.trim();
-                    if (text && ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify({ action: 'request_stream', text: text }));
+                // Try to reconnect after a delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            };
+            
+            ws.onmessage = (event) => {
+                try {
+                    // Try to parse as JSON (text commands)
+                    const data = JSON.parse(event.data);
+                    if (data.text) {
+                        textInput.value = data.text;
+                        ws.send(JSON.stringify({ text: data.text }));
                     }
-                });
-                
-                // Function to play next audio in queue
-                function playNextInQueue() {
-                    if (audioQueue.length === 0) {
-                        isPlaying = false;
-                        return;
+                    if (data.error) {
+                        console.error('Error:', data.error);
                     }
-                    
-                    isPlaying = true;
-                    const audioBuffer = audioQueue.shift();
-                    const source = audioContext.createBufferSource();
-                    source.buffer = audioBuffer;
-                    source.connect(audioContext.destination);
-                    
-                    source.onended = () => playNextInQueue();
-                    source.start(0);
+                } catch (e) {
+                    // Handle as binary audio data
+                    if (event.data instanceof Blob) {
+                        const audioUrl = URL.createObjectURL(new Blob([event.data], { type: 'audio/mpeg' }));
+                        audioPlayer.src = audioUrl;
+                        audioPlayer.play().catch(err => console.error('Error playing audio:', err));
+                    }
                 }
             };
             
-            // Initial connection
-            connectWebSocket();
+            // Handle speak button
+            speakButton.addEventListener('click', () => {
+                const text = textInput.value.trim();
+                if (text && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ text }));
+                }
+            });
         });
     </script>
 </body>
