@@ -3,3 +3,4 @@ emotion_log.txt
 .env
 .env
 .env_elevenlabs.txt
+node_modules
