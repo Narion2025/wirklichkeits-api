@@ -135,6 +135,28 @@ wss.on('connection', (ws) => {
             }, 100);
           }, 100);
         });
+// 🔄 Wirklichkeits-API Trigger-Endpunkt
+app.post('/trigger', (req, res) => {
+  const { trigger, params } = req.body;
+  console.log(`⚡ Trigger received: ${trigger}`, params);
+
+  // Test-Antwort oder Integration mit deiner Logik
+  if (trigger === 'call_self') {
+    console.log("🔔 call_self ausgelöst:", params?.message);
+    return res.send(`Trigger 'call_self' aktiviert mit Nachricht: ${params?.message}`);
+  }
+
+  res.status(200).send('Trigger empfangen');
+});
+
+// 📊 Wirklichkeits-API Status-Endpunkt
+app.get('/status', (req, res) => {
+  res.send({
+    trigger: 'none',
+    params: {},
+    info: 'Wirklichkeits-API aktiv'
+  });
+});
 
         elevenWs.on('message', (data) => {
           if (ws.readyState === WebSocket.OPEN) {
